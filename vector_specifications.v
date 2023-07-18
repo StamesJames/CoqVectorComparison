@@ -2,18 +2,34 @@ Module StdVector.
 
 Require Import Vector.
 
+
+
+Check Vector.nil.
+Print Vector.nil.
+(*
+Definition nil : forall A:Type, vector A 0 :=
+*)
+
+Check Vector.cons.
+Print Vector.cons.
+(*
+Definition cons : forall A:Type, A -> forall n:nat, vector A n -> vector A (S n) :=
+*)
+
 Search "ind" in Vector.
 (*
-induction : 
+Lemma vector_ind :
   forall (A : Type) (P : forall n : nat, vector A n -> Prop),
     P 0 nil -> 
-    (forall (h : A) (n : nat) (v : vector A n), P n v -> P (S n) (h, v)) -> 
+    (forall (h : A) (n : nat) (v : vector A n), P n v -> P (S n) (cons h v)) -> 
     forall (n : nat) (v : vector A n), P n v.
 *)
 
 Check Vector.hd.
 Print Vector.hd.
-(* hd : {A:Type} {n:nat} (v:vector A (S n) ) -> A *)
+(* 
+Definition hd : {A:Type} {n:nat} (v:vector A (S n) ) -> A 
+*)
 (* hd' : {A:Type} {n:nat} (v:vector A n ) -> option A *)
 Check Vector.tl.
 Print Vector.tl.

@@ -4,10 +4,10 @@ Require Import Vector.
 
 Search "ind" in Vector.
 (*
-induction : 
+Lemma vector_ind :
   forall (A : Type) (P : forall n : nat, vector A n -> Prop),
     P 0 nil -> 
-    (forall (h : A) (n : nat) (v : vector A n), P n v -> P (S n) (h, v)) -> 
+    (forall (h : A) (n : nat) (v : vector A n), P n v -> P (S n) (cons h v)) -> 
     forall (n : nat) (v : vector A n), P n v.
 *)
 

@@ -98,52 +98,54 @@ match n with
 | S n' => FS (nat_to_fin n')
 end.
 
+Print Fin.t.
+
+(*
+last
+*)
+Definition last {A:Type} {n:nat} (v:vector A (S n) ) : A := v (nat_to_fin n).
+
 Definition last' {A:Type} {n:nat} (v:vector A n) : option A :=
 match n return (vector A n -> option A) with
 | 0 => fun _ => None
 | S n' => fun (v':vector A (S n')) => Some (v' (nat_to_fin n'))
 end v.
 
-Goal last' vec_0 = None.   reflexivity. Qed.
-Goal last' vec_1 = Some 0. reflexivity. Qed.
-Goal last' vec_2 = Some 1. reflexivity. Qed.
-Goal last' vec_3 = Some 2. reflexivity. Qed.
-
+(*
+const
+*)
 Definition const {A:Type} (a:A) (n:nat) : vector A n :=
 fun (f: Fin.t n) => a.
-(*
-Goal const 1 0 = nil.                          reflexivity. Qed.
-Goal const 1 1 = cons 1 nil.                   reflexivity. Qed.
-Goal const 1 2 = cons 1 (cons 1 nil).          reflexivity. Qed.
-Goal const 1 3 = cons 1 (cons 1 (cons 1 nil)). reflexivity. Qed.
-*)
 
+(*
+nth
+*)
 Definition nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A := v f.
 
+Definition nth' {A:Type} {n:nat} : forall p:nat, (p < n) -> vector A n -> A :=
+  fun (p:nat) (H:p<n) (v:vector A n) =>
+    v (Fin.of_nat_lt H).
+
+Print Fin.eqb.
+
 (*
-
-Definition lower_fin_bound {n:nat} (f:fin n) (m:nat) (H:m<=n) :=
-
-Definition take {A:Type} {n:nat} : forall p : nat, 
-  (p <= n) -> (v:vector A n) -> vector A m :=
-fun (p:nat) (H:p<=n) (v:vector A n) => 
-  
-
-Definition replace {A:Type} {n:nat} (v:vector A n) (f:fin n) (a:A) : vector A n :=
-  fun f' => 
-  match f' with
-  | f => a
-  | _ => v f'
-  end.
-(*
-induction
 replace
-take
-append
-rev
-map
-fold_right
-of_list, to_list
 *)
+Definition replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n :=
+  fun (f':Fin.t n) => if (Fin.eqb f' f) then a else (v f).
 
+Definition replace' {A:Type} {n:nat} (p:nat) (v:vector A n) (a:A) : forall H:(p < n), vector A n := fun (H:p<n) =>
+  fun (f':Fin.t n) => if (Fin.eqb f' (Fin.of_nat_lt H)) then a else (v (Fin.of_nat_lt H)).
+
+(*
+take
 *)
+Definition take {A:Type} {n:nat} : forall p : nat, (p < n) -> (vector A n) -> vector A p :=
+  fun (p:nat) (H: p<n) (v:vector A n) =>
+    fun (f:Fin.t p) => v (Fin.of_nat_lt H).
+
+
+
+Definition append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) := 
+  match n with 
+  | 0 => 

@@ -37,10 +37,10 @@
 - [ ] to_list
 
 ## list 
-- [ ] nil
-- [ ] cons
-- [ ] vector_ind
-- [ ] hd
+- [x] nil
+- [x] cons
+- [x] vector_ind
+- [x] hd
 - [ ] tl
 - [ ] last
 - [ ] const

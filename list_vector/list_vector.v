@@ -12,19 +12,19 @@ Arguments elts_spec {A n}.
 Check mk_vector.
 Check elts_spec.
 
+(*
+nil
+*)
 Definition nil (A : Type) : vector A 0 := mk_vector  (Datatypes.nil) eq_refl.
 
+(*
+cons
+*)
 Definition cons (A : Type) (h : A) (n : nat) (v : vector A n) : vector A (S n) :=
   mk_vector (Datatypes.cons h (elts v)) (f_equal S (elts_spec v)).
 
 Arguments nil {A}%type_scope.
 Arguments cons {A}%type_scope _ {n}%type_scope.
-
-Definition vec_0:vector nat 0 := nil.
-Definition vec_1 := cons 0 nil.
-Definition vec_2 := cons 0 (cons 1 nil).
-Definition vec_3 := cons 0 (cons 1 (cons 2 nil)).
-
 Arguments cons {A} h n / !v.
 
 Lemma vector_ind : forall (A : Type) (P : forall n : nat, vector A n -> Prop),
@@ -49,7 +49,14 @@ Proof.
         decide equality.
 Qed.
 
-Definition hd {A:Type} {n:nat} (v:vector A (S n)) : A.
+(*
+hd
+*)
+Require Import Lia.
+Lemma S_not_0: forall n:nat, 0 = S n -> False.
+Proof. lia. Qed.
+Open Scope list.
+Definition hd_as_proof {A:Type} {n:nat} (v:vector A (S n)) : A.
 Proof.
 assert (H := elts_spec v).
 destruct (elts v).
@@ -57,7 +64,17 @@ destruct (elts v).
   abstract(lia).
 - apply a.
 Defined.
-
+Definition hd {A:Type} {n:nat} (v:vector A (S n)) : A :=
+  match elts_spec v with
+  | H => 
+    match elts v with 
+    | l => 
+      match l return (length (l) = S n -> A) with
+      | [] => fun H: length [] = S n => match S_not_0 n H  with end 
+      | h :: t => fun _ => h
+      end H
+    end
+  end. 
 Check elts_spec.
 Print hd.
 (*

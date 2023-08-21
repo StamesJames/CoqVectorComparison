@@ -19,15 +19,15 @@
 - [ ] to_list
 
 ## inductive 
-- [ ] nil
-- [ ] cons
+- [x] nil
+- [x] cons
 - [ ] vector_ind
-- [ ] hd
-- [ ] tl
-- [ ] last
-- [ ] const
-- [ ] nth
-- [ ] replace
+- [x] hd
+- [x] tl
+- [x] last
+- [x] const
+- [x] nth
+- [x] replace
 - [ ] take
 - [ ] append
 - [ ] rev

@@ -75,25 +75,11 @@ Definition hd {A:Type} {n:nat} (v:vector A (S n)) : A :=
       end H
     end
   end. 
-Check elts_spec.
-Print hd.
-(*
-match (elts v) with
-| [] => 
-| x::_ => x
-end.
-*)
-
 Definition hd' {A:Type} {n:nat} (v:vector A n) : option A :=
 match (elts v) with
 | [] => None
 | x::l => Some x
 end.
-
-Goal hd' vec_0 = None.   reflexivity. Qed.
-Goal hd' vec_1 = Some 0. reflexivity. Qed.
-Goal hd' vec_2 = Some 0. reflexivity. Qed.
-Goal hd' vec_3 = Some 0. reflexivity. Qed.
 
 Lemma tail_spec {A:Type} {n:nat} (l:list A) (H:length l = n) : length (List.tl l) = pred n.
 Proof.

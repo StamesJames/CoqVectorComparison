@@ -1,3 +1,6 @@
+Require Import fin_utils.
+Require Import lia_utils.
+Require Import Fin.
 
 Require Import Eqdep_dec Lia.
 Require Import List.
@@ -53,9 +56,9 @@ Qed.
 hd
 *)
 Require Import Lia.
-Lemma S_not_0: forall n:nat, 0 = S n -> False.
-Proof. lia. Qed.
+
 Open Scope list.
+
 Definition hd_as_proof {A:Type} {n:nat} (v:vector A (S n)) : A.
 Proof.
 assert (H := elts_spec v).
@@ -81,11 +84,23 @@ match (elts v) with
 | x::l => Some x
 end.
 
+
+(*
+tl
+*)
 Lemma tail_spec {A:Type} {n:nat} (l:list A) (H:length l = n) : length (List.tl l) = pred n.
 Proof.
 destruct l, n; cbn; cbn in H; lia.
 Qed.
-
+Definition tl_asProof {A:Type} {n:nat} (v:vector A (S n)) : vector A n.
+Proof.
+unshelve econstructor.
+- apply (List.tl (elts v)).
+- apply (tail_spec (elts v) (elts_spec v)).
+Defined.
+Print tl_asProof.
+Definition tl {A:Type} {n:nat} (v:vector A (S n)) : vector A n :=
+{| elts := tl (elts v); elts_spec := tail_spec (elts v) (elts_spec v)|}.
 
 Definition tl' {A:Type} {n:nat} (v:vector A n) : vector A (pred n):=
 match n return (vector A n -> vector A (pred n)) with
@@ -96,42 +111,148 @@ match n return (vector A n -> vector A (pred n)) with
     end
 end v.
 
-Definition tl {A:Type} {n:nat} (v:vector A (S n)) : vector A n.
-unshelve econstructor.
-- apply (List.tl (elts v)).
-- apply (tail_spec (elts v) (elts_spec v)).
-Defined.
 
-Print tl.
-
-Lemma vec_eq {A:Type} {n:nat} : forall (v w: vector A n), elts v = elts w -> v = w.
-Proof.
-Admitted.
-
-Goal tl vec_1 = nil. Proof. apply vec_eq. reflexivity. Qed.
-Goal tl vec_2 = @cons nat 1 0 nil.          apply vec_eq. reflexivity. Qed.
-Goal tl vec_3 = @cons nat 1 1 (@cons nat 2 0 nil). apply vec_eq. reflexivity. Qed.
 (*
+last
 *)
+
+Definition last {A:Type} {n:nat} (v:vector A (S n)) : A :=
+    match elts_spec v with
+    | H => 
+      match elts v with 
+      | l => 
+        match l return (length (l) = S n -> A) with
+        | [] => fun H: length [] = S n => match S_not_0 n H  with end 
+        | h :: t => fun _ => List.last t h
+        end H
+      end
+    end. 
+
+
+Definition last' {A:Type} {n:nat} (v:vector A n ) : option A := 
+match elts v with
+| [] => None
+| h::t => Some(List.last t h)
+end.
+
 (*
-Definition last {A:Type} {n:nat} (v:vector A n) : option A :=
-
-
-Goal last vec_0 = None.   reflexivity. Qed.
-Goal last vec_1 = Some 0. reflexivity. Qed.
-Goal last vec_2 = Some 1. reflexivity. Qed.
-Goal last vec_3 = Some 2. reflexivity. Qed.
+const
 *)
+
+Fixpoint const {A:Type} (a:A) (n:nat): vector A n :=
+match n with
+| 0 => nil
+| S n' => cons a n' (const a n')
+end.
+
 (*
-induction
-last {A:Type} {n:nat} (v:vector A n) : option A :=
-const const {A:Type} (a:A) (n:nat) : vector A n :=
 nth
-replace
-take
-append
-rev
-map
-fold_right
-of_list, to_list
 *)
+
+Definition nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A :=
+match n return (vector A n) -> (Fin.t n) -> A with 
+| 0 => fun (v:vector A 0) (f:Fin.t 0) => match f with end
+| S n' => fun (v:vector A (S n')) (f:Fin.t (S n')) =>
+  match v with 
+  | {| elts := [] ; elts_spec := p |} => match S_not_0 n' p with end
+  | {| elts := x::xs ; elts_spec := p |} => nth (fin_to_nat f) (elts v) x
+  end
+end v f.
+
+
+Fixpoint list_replace {A:Type} (l:list A) (n:nat) (a:A) : list A := 
+match l with
+| [] => []
+| x::xs => match n with 
+  | 0 => a::xs
+  | S n' => a::list_replace xs n' a
+  end 
+end.
+
+Lemma list_replace_len_eq {A:Type}: forall (l:list A) (i:nat) (a:A), length l = length (list_replace l i a).
+Proof.
+intros l.
+induction l.
+- intros i a. 
+  cbn.
+  reflexivity.
+- intros i a'.
+  cbn.
+  destruct i.
+  + cbn.
+    reflexivity.
+  + rewrite (IHl i a').
+    cbn.
+    reflexivity.
+Qed.
+
+Lemma get_replace_len_spec {A:Type} {n:nat}: forall (l:list A) (p:length l = n) (i:nat) (a:A), length (list_replace l i a) = n.
+Proof.
+intros.
+rewrite <- (list_replace_len_eq l i a).
+apply p.
+Qed.
+
+(*
+replace
+*)
+Definition replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n := 
+match v with
+| {| elts := l; elts_spec := p|} => {| elts := (list_replace l (fin_to_nat f) a); elts_spec := (get_replace_len_spec l p (fin_to_nat f) a)|} 
+end.
+
+Fixpoint list_take {A:Type} (l:list A) (n:nat) : list A := 
+match l with
+| [] => []
+| x::xs => match n with 
+  | 0 => x::xs
+  | S n' => x:: list_take xs n'
+  end 
+end.
+
+Print firstn_length_le.
+Check firstn_length_le.
+
+Lemma apply_eq_in_leq_R {i n m:nat}: forall (p:i<=n) (H:m = n), i<=m.
+Proof.
+intros.
+rewrite H.
+apply p.
+Qed.
+
+(*
+take
+*)
+Definition take {A:Type} {n:nat} : forall i : nat, (i <= n) -> vector A n -> vector A i :=
+fun (i:nat) (p:i <= n) (v: vector A n) =>
+match v with
+| {|elts := l ; elts_spec := s|} => 
+  {|elts := firstn i l; elts_spec := (firstn_length_le l (apply_eq_in_leq_R p s))|}
+end.
+
+(*
+append
+*)
+Lemma apply_eq_in_add_L {i n m x:nat}: forall (p:i = n) (H: x = i + m), x = n + m.
+Proof.
+lia.
+Qed.
+
+Lemma apply_eq_in_add_R {i n m x:nat}: forall (p:i = n) (H: x = m + i), x = m + n.
+Proof.
+lia.
+Qed.
+
+Definition append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) :=
+match v with {| elts := elts_v; elts_spec := elts_spec_v |} => match w with {| elts := elts_w ; elts_spec:=elts_spec_w|} => 
+  {|elts := elts_v ++ elts_w; elts_spec := apply_eq_in_add_R elts_spec_w (apply_eq_in_add_L elts_spec_v (app_length elts_v elts_w))|} end end.
+
+(*
+rev
+*)
+
+Search "=".
+Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n := 
+match v with {|elts:=l;elts_spec:=p|} => 
+{|elts:=rev l; elts_spec:=p|}
+

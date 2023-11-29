@@ -38,45 +38,49 @@ Definition tl'' {A:Type} {n:nat} (v:vector A n) : option (vector A (pred n))
 Check Vector.last.
 Print Vector.last.
 (* 
-Definition last {A:Type} {n:nat} (v:vector A (S n) ) : A 
+Definition last {A:Type} {n:nat} (v:vector A (S n) ) : A :=
 *)
 (* 
-Definition last' {A:Type} {n:nat} (v:vector A n ) : option A 
+Definition last' {A:Type} {n:nat} (v:vector A n ) : option A :=
 *)
 Check Vector.const.
 Print Vector.const.
 (* 
-Definition const {A:Type} (a:A) : forall n:nat, vector A n 
+Definition const {A:Type} (a:A) : forall n:nat, vector A n :=
 *)
 Check Vector.nth.
 Print Vector.nth.
 Print Fin.
 (* 
-Definition nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A 
-Definition nth' {A:Type} {n:nat} : forall p:nat, (p <= n) -> vector A n -> A 
+Definition nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A :=
+Definition nth' {A:Type} {n:nat} : forall p:nat, (p <= n) -> vector A n -> A :=
 *)
 Check Vector.replace.
 Print Vector.replace.
 Print Fin.
 (* 
-Definition replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n 
+Definition replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n :=
+*)
+(*
 Definition replace {A:Type} {n:nat} : forall p:nat, (p <= n) -> vector A n -> A -> vector A n 
 *)
 Check Vector.take.
 Print Vector.take. 
 (* 
-Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (v:vector A n) -> vector A m 
-Definition take {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : vector A (fin_to_nat f) 
+Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (vector A n) -> vector A n 
+*)
+(*
+Definition take' {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : vector A (fin_to_nat f) 
 *)
 Check Vector.append.
 Print Vector.append.
 (* 
-Definition append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) 
+Definition append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) :=
 *)
 Check Vector.rev.
 Print Vector.rev.
 (* 
-Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n 
+Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n :=
 *)
 Check Vector.map.
 Print Vector.map.

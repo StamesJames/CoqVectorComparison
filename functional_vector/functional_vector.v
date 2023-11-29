@@ -1,6 +1,6 @@
-
+Require Import fin_utils.
+Require Import lia_utils.
 Require Import Fin.
-Print Fin.
 
 Definition vector (A : Type) (n : nat) := Fin.t n -> A.
 
@@ -43,8 +43,6 @@ tl
 Definition tl {A : Type} {n : nat} (v : vector A (S n)) : vector A n := 
   fun i:(Fin.t n) => v (FS i).
 
-Definition calc_fin {n:nat} (f:Fin.t (S (pred (S n)))): Fin.t (S n) := f.
-
 Definition tl' {A : Type} {n : nat} (v : vector A n) : vector A (pred n) :=
 match n return (vector A n -> vector A (pred n) )with
 | 0 => fun _:vector A 0 => nil
@@ -52,17 +50,6 @@ match n return (vector A n -> vector A (pred n) )with
 end v.
 
 Require Import FunctionalExtensionality.
-
-Check functional_extensionality.
-
-Check Fin.caseS.
-
-Definition fin_caseS {n : nat} (p : Fin.t (S n)) : forall (P : Fin.t (S n) -> Type)
-  (P1 : P F1) (PS : forall (p : Fin.t n), P (FS p)), P p :=
-  match p with
-  | F1 => fun P P1 PS => P1
-  | FS p' => fun P P1 PS => PS p'
-  end.
 
 (*
 vector_ind
@@ -91,14 +78,6 @@ Proof.
 Qed.
 
 Print Assumptions vector_ind.
-
-Fixpoint nat_to_fin (n:nat) : Fin.t (S n) :=
-match n with
-| 0 => F1
-| S n' => FS (nat_to_fin n')
-end.
-
-Print Fin.t.
 
 (*
 last
@@ -144,8 +123,57 @@ Definition take {A:Type} {n:nat} : forall p : nat, (p < n) -> (vector A n) -> ve
   fun (p:nat) (H: p<n) (v:vector A n) =>
     fun (f:Fin.t p) => v (Fin.of_nat_lt H).
 
-
+(*
+append
+*)
+Check Fin.case_L_R'.
 
 Definition append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) := 
-  match n with 
-  | 0 => 
+  fun (i: Fin.t (n+p)) => case_L_R' (fun x => A) i (fun i:Fin.t n => v i) (fun i:Fin.t p => w i).
+
+(*
+rev
+*)
+Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n :=
+fun f:Fin.t n => v (fin_inv f).
+
+(*
+map
+*)
+Definition map {A:Type} {B:Type} (f:A->B) : forall n: nat, vector A n -> vector B n :=
+fun (n:nat) (v:vector A n) => 
+  fun i:Fin.t n => f (v i).
+
+
+(*
+fold_right
+*)
+ 
+Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, vector A n -> B -> B := 
+fun n v b => 
+fin_fold_right b (fun i acc => f (v i) acc).
+
+(*
+of_list
+uses nth wich dosn't makes sure the index isn't out bounce. 
+a save_nth standart function would be nice that takes a proof that the index isn't out of bounce. 
+*)
+
+Require Import List.
+Import ListNotations.
+
+Definition of_list {A:Type} : forall l : list A, vector A (length l) :=
+fun l: list A => 
+  match l with 
+  | [] => fun i:Fin.t (length []) => match i with end
+  | x::xs => fun i:Fin.t (length (x::xs)) => nth (fin_to_nat i) l x
+  end.
+
+(*
+to_list
+*)
+Definition to_list {A:Type} {n:nat} (v:vector A n) : list A :=
+fin_fold_right [] (fun i acc => (v i)::acc).
+
+
+

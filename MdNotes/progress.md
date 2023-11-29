@@ -41,9 +41,9 @@
 - [x] cons
 - [x] vector_ind
 - [x] hd
-- [ ] tl
-- [ ] last
-- [ ] const
+- [x] tl
+- [x] last
+- [x] const
 - [ ] nth
 - [ ] replace
 - [ ] take

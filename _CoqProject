@@ -1,4 +1,6 @@
 -R . CoqVectorComparison
+utils/lia_utils.v
+utils/fin_utils.v
 functional_vector/functional_vector.v
 inductive_vector/inductive_vector.v
 list_vector/list_vector.v

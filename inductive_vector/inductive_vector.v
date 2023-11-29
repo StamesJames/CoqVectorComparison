@@ -1,4 +1,7 @@
+Require Import fin_utils.
+Require Import lia_utils.
 Require Import Fin.
+
 Inductive vector (A : Type) : nat -> Type :=
   | nil : vector A 0
   | cons : forall (h : A) (n : nat), vector A n -> vector A (S n).
@@ -27,8 +30,7 @@ Definition caseS:
     end.
 Print IDProp.
 Check IDProp.
-Definition Bla : IDProp :=
-  fun A:Prop => fun (a:A) => a.
+
 Print False_ind.
   
 Arguments caseS {A}%type_scope (P H)%function_scope {n}%nat_scope v.
@@ -39,10 +41,10 @@ vector_ind
 (*
 hd
 *)
-Definition hd {A:Type} {n:nat} (v:vector A (S n)) : A := 
+Definition hd {A:Type} {n:nat} (v:vector A (S n) ) : A :=
   match v with cons h t => h end.
 
-Definition hd' {A:Type} {n:nat} (v:vector A n) : option A := 
+Definition hd' {A:Type} {n:nat} (v:vector A n ) : option A := 
 match v with 
 | nil => None
 | cons h t => Some h
@@ -52,36 +54,35 @@ end.
 (*
 tl
 *)
-Definition tl {A:Type} {n:nat} (v:vector A n) : vector A (pred n):=
+Definition tl {A:Type} {n:nat} (v:vector A (S n)) : vector A n :=
 match v with
-| nil => nil
 | cons h t => t
 end.
 
 (*
 last
 *)
-Fixpoint last {A:Type} {n:nat} (v:vector A n) : option A :=
-match v with 
-| nil => None 
-| cons h nil => Some h
-| cons h t => last t
-end.
+Fixpoint last {A:Type} {n:nat} (v:vector A (S n) ) : A :=
+match n return vector A (S n) -> A with 
+| 0 => fun (v:vector A (S 0)) => match v with cons h t => h end 
+| S n' => fun (v:vector A (S (S n'))) => @last A n' (tl v)
+end v.
 
 (*
 const
 *)
-Fixpoint const {A:Type} (a:A) (n:nat) : vector A n :=
+Definition const {A:Type} (a:A) : forall n:nat, vector A n :=
+fix f (n:nat) :=
 match n with
 | 0 => nil
-| S n' => cons a (const a n')
+| S n' => cons a (f n')
 end.
 
 (*
 nth
 *)
 Fixpoint nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A := 
-  match f in (Fin.t m') return (vector A m' -> A) with
+match f in (Fin.t m') return (vector A m' -> A) with
   | @Fin.F1 n =>
 	  caseS (fun (n0 : nat) (_ : vector A (S n0)) => A)
         (fun (h : A) (n0 : nat) (_ : vector A n0) => h)
@@ -92,8 +93,11 @@ Fixpoint nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A :=
          @nth A n0 t p0) v f'
   end v.
 
+(*
+replace
+*)
 Fixpoint replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n := 
-  match f in (Fin.t m') return (vector A m' -> vector A m') with
+match f in (Fin.t m') return (vector A m' -> vector A m') with
   | @Fin.F1 n =>
     caseS (fun (n0 : nat) (_ : vector A (S n0)) => vector A (S n0))
           ((fun (_ : A) (n0 : nat) (t : vector A n0) => cons a t))
@@ -103,13 +107,17 @@ Fixpoint replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n 
       cons h (@replace A n0 t p0 a)) v f'
   end v.
 
-Print Fin.
-Require Import Lia.
-Lemma not_lt_0: forall n: nat, n < 0 -> False.
-Proof.
-lia.
-Qed.
-Lemma lt_S: forall n m:nat, S n < S m -> n < m.
-Proof. lia. Qed.
+(*
+take
 
-
+Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (v:vector A n) -> vector A p := 
+fun (p:nat) (H: p <= n) => 
+match p with 
+| 0 => nil
+| S p' => 
+  match v with
+  | nil => match 
+  | cons h t => cons h (take p' (leq_S p' ()) t )
+  end 
+end.  
+*)

@@ -250,9 +250,42 @@ match v with {| elts := elts_v; elts_spec := elts_spec_v |} => match w with {| e
 (*
 rev
 *)
+Print eq_trans.
 
-Search "=".
 Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n := 
 match v with {|elts:=l;elts_spec:=p|} => 
-{|elts:=rev l; elts_spec:=p|}
+{|elts:= rev l ; elts_spec:= eq_trans (rev_length l) p |}
+end.
 
+(*
+map
+*)
+Definition map {A:Type} {B:Type} (f:A->B) : forall n: nat, vector A n -> vector B n :=
+fun (n:nat) (v:vector A n) => 
+match v with {|elts:=l;elts_spec:=p|} => 
+{|elts:=map f l; elts_spec:= eq_trans (map_length f l) p|}
+end.
+
+(*
+fold_right
+*)
+Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, vector A n -> B -> B :=
+fun (n:nat) (v:vector A n) (b:B) =>
+match v with {|elts:=l;elts_spec:=p|} => 
+fold_right f b l
+end.
+
+(*
+of_list
+*)
+Definition of_list {A:Type} : forall l : list A, vector A (length l) := 
+fun (l:list A) =>
+{| elts := l; elts_spec := eq_refl |}.
+
+(*
+to_list
+*)
+Definition to_list {A:Type} {n:nat} (v:vector A n) : list A :=
+match v with {|elts:=l;elts_spec:=p|} => 
+l
+end.

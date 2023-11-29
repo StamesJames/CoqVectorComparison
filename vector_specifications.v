@@ -85,17 +85,17 @@ Definition rev {A:Type} {n:nat} (v:vector A n) : vector A n :=
 Check Vector.map.
 Print Vector.map.
 (* 
-Definition map {A:Type} {B:Type} (f:A->B) : forall n: nat, vector A n -> vector B n 
+Definition map {A:Type} {B:Type} (f:A->B) : forall n: nat, vector A n -> vector B n :=
 *)
 Check Vector.fold_right.
 Print Vector.fold_right.
 (* 
-Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, vector A n -> B -> B 
+Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, vector A n -> B -> B :=
 *)
 Check Vector.of_list.
 Print Vector.of_list.
 (* 
-Definition of_list {A:Type} : forall l : list A, vector A (length l)
+Definition of_list {A:Type} : forall l : list A, vector A (length l) :=
 *)
 Check Vector.to_list.
 Print Vector.to_list.

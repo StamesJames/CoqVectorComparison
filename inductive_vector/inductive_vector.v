@@ -109,7 +109,9 @@ match f in (Fin.t m') return (vector A m' -> vector A m') with
 
 (*
 take
+*)
 
+(*
 Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (v:vector A n) -> vector A p := 
 fun (p:nat) (H: p <= n) => 
 match p with 

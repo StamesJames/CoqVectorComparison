@@ -53,6 +53,8 @@ Print Vector.nth.
 Print Fin.
 (* 
 Definition nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A :=
+*)
+(*
 Definition nth' {A:Type} {n:nat} : forall p:nat, (p <= n) -> vector A n -> A :=
 *)
 Check Vector.replace.
@@ -67,7 +69,7 @@ Definition replace {A:Type} {n:nat} : forall p:nat, (p <= n) -> vector A n -> A 
 Check Vector.take.
 Print Vector.take. 
 (* 
-Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (vector A n) -> vector A n 
+Definition take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (vector A n) -> vector A p := 
 *)
 (*
 Definition take' {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : vector A (fin_to_nat f) 
@@ -100,7 +102,7 @@ Definition of_list {A:Type} : forall l : list A, vector A (length l) :=
 Check Vector.to_list.
 Print Vector.to_list.
 (* 
-Definition to_list {A:Type} {n:nat} (v:vector A n) : list A
+Definition to_list {A:Type} {n:nat} (v:vector A n) : list A :=
 *)
 
 

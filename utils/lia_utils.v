@@ -21,3 +21,6 @@ Proof. lia. Qed.
 
 Lemma n_lt_Sn: forall n:nat, n < (S n).
 Proof. lia. Qed.
+
+Lemma Sn_not_leq_0: forall n:nat, S n <= 0 -> False.
+Proof. lia. Qed.

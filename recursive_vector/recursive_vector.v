@@ -87,26 +87,119 @@ match n return (vector A n -> option A) with
 end v.
 
 (*
-Fixpoint const {A:Type} (a:A) : forall n:nat, vector A n:=
-fun n:nat =>
-match n return (vector A n) with
-| 0 => tt
-| S n' => (a, (const a n'))
+const
+*)
+Definition const {A:Type} (a:A) : forall n:nat, vector A n := 
+fix const_fix (n:nat) : vector A n :=
+match n with 
+| 0 => nil
+| S n' => cons a (const_fix n')
 end.
 
-Goal const 1 0 = nil.                          reflexivity. Qed.
-Goal const 1 1 = cons 1 nil.                   reflexivity. Qed.
-Goal const 1 2 = cons 1 (cons 1 nil).          reflexivity. Qed.
-Goal const 1 3 = cons 1 (cons 1 (cons 1 nil)). reflexivity. Qed.
-*)
+Print Fin.
+
 (*
-induction
 nth
-replace
-take
-append
-rev
-map
-fold_right
-of_list, to_list
 *)
+Fixpoint nth {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) : A :=
+match n return Fin.t n -> vector A n -> A with 
+| 0 => fun f _ => match f with end
+| S n' => fun (f:Fin.t (S n')) (v:vector A (S n')) => 
+  match f in Fin.t (S n') return vector A n' -> A with 
+  | @Fin.F1 n' => fun _ => match v with (x,_) => x end
+  | @Fin.FS n' f' => fun (v: vector A n') => nth v f'
+  end (tl v)
+end f v. 
+
+(*
+replace
+*)
+Fixpoint replace {A:Type} {n:nat} (v:vector A n) (f:Fin.t n) (a:A) : vector A n :=
+match n return Fin.t n -> vector A n -> vector A n with 
+| 0 => fun f _ => match f with end
+| S n' => fun (f:Fin.t (S n')) (v:vector A (S n')) => 
+  match f in Fin.t (S n') return vector A (S n') -> vector A (S n') with 
+  | @Fin.F1 n' => fun (v: vector A (S n')) => match v with (x,xs) => (a,xs) end
+  | @Fin.FS n' f' => fun (v: vector A (S n')) => 
+    match v with (x,xs) => (x,replace xs f' a) end
+  end v
+end f v.
+
+(*
+take
+*)
+Fixpoint take {A:Type} {n:nat} : forall p : nat, (p <= n) -> (vector A n) -> vector A p := 
+fun (p:nat) (H:p<=n) (v:vector A n) =>
+match p return p <= n -> vector A p with
+| 0 => fun _ => nil 
+| S p' => fun (H:(S p'<= n)) => 
+  match n return (S p'<= n) -> vector A n -> vector A (S p') with 
+  | 0 => fun (H:(S p'<= 0)) _ => match (Sn_not_leq_0 p' H) with end
+  | S n' => fun (H:(S p'<= S n')) (v:vector A (S n')) => 
+    (hd v, @take A n' p' (leq_S p' n' H) (tl v))
+  end H v
+end H.
+
+(*
+append
+*)
+Fixpoint append {A:Type} {n:nat} {p:nat} (v:vector A n) (w:vector A p) : vector A (n + p) :=
+match n return vector A n -> vector A (n + p) with
+| 0 => fun _ => w
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => (x, append xs w) end 
+end v.
+
+
+Fixpoint snoc {A:Type} {n:nat} (v:vector A n) (a:A): vector A (S n) :=
+match n return vector A n -> vector A (S n) with
+| 0 => fun _ => cons a nil
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => (x,snoc xs a) end
+end v.
+
+(*
+rev
+*)
+Fixpoint rev {A:Type} {n:nat} (v:vector A n) : vector A n :=
+match n return vector A n -> vector A n with
+| 0 => fun _ => nil
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => snoc (rev xs) x end
+end v.
+
+
+Definition map {A:Type} {B:Type} (f:A->B) : forall n: nat, vector A n -> vector B n :=
+fix map_fix n v :=
+match n return vector A n -> vector B n with
+| 0 => fun _ => nil
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => (f x, map_fix n' xs) end
+end v.
+
+(*
+fold_right
+*)
+Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, vector A n -> B -> B :=
+fix fold_right_fix n v b := 
+match n return vector A n -> B with
+| 0 => fun _ => b 
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => f x (fold_right_fix n' xs b) end
+end v.
+
+
+(*
+of_list
+*)
+Definition of_list {A:Type} : forall l : list A, vector A (length l) :=
+fix of_list_fix l :=
+match l with
+| List.nil => nil
+| List.cons x xs => (x,of_list_fix xs)
+end.
+
+(*
+to_list
+*)
+Fixpoint to_list {A:Type} {n:nat} (v:vector A n) : list A :=
+match n return vector A n -> list A with
+| 0 => fun _ => List.nil
+| S n' => fun (v:vector A (S n')) => match v with (x,xs) => List.cons x (to_list xs) end
+end v.
+

@@ -106,3 +106,25 @@ Definition to_list {A:Type} {n:nat} (v:vector A n) : list A :=
 *)
 
 
+(*
+Lemmas
+*)
+(*
+equality zum Standard lib vector
+
+Lemma foo : forall (v1: vector1 A n), hd1 v1 = hd2 (iso v1) /\ iso (tl1 v1) = tl2 v2.
+*)
+Check Vector.eq_nth_iff.
+Print Vector.eq_nth_iff.
+(*Check Vector.In_cons_iff.*)
+Check Vector.rev_rev.
+Check Vector.In_rev.
+Check Vector.to_list_of_list_opp.
+Check Vector.length_to_list.
+Check Vector.of_list_to_list_opp.
+
+(*
+Liste fertig
+Standard Beweise für inductive vector anwenden
+anfangen für die anderen implementierungen nach und nach zu beweisen
+*)

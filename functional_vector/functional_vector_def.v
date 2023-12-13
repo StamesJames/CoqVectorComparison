@@ -29,7 +29,7 @@ Arguments cons {A}%type_scope _ {n}%type_scope.
 (* 
 hd 
 *)
-Definition hd {A:Type} {n:nat} (v:vector A (S n) ) : A :=v F1.
+Definition hd {A:Type} {n:nat} (v:vector A (S n) ) : A := v F1.
 
 Definition hd'{A : Type} {n : nat} (v : vector A n) : option A :=
 match n return (vector A n -> option A)with

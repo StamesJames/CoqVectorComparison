@@ -1,4 +1,4 @@
-Require Import inductive_vector.
+Require Import InductiveVector.
 
 
 Definition vec_0:vector nat 0 := nil.

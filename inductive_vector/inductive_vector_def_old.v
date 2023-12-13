@@ -2,13 +2,19 @@ Require Import fin_utils.
 Require Import lia_utils.
 Require Import Fin.
 
+Print Vector.t. 
+
 Inductive vector (A : Type) : nat -> Type :=
   | nil : vector A 0
   | cons : forall (h : A) (n : nat), vector A n -> vector A (S n).
 
-Arguments nil {A}%type_scope.
-Arguments cons {A}%type_scope _ {n}%type_scope.
+Arguments vector A%type_scope _%nat_scope.
+Arguments nil A%type_scope.
+Arguments cons A%type_scope h n%nat_scope _.
+Print Vector.caseS.
+
 Print IDProp.
+
 Definition caseS: 
   forall (A:Type) (P : forall n : nat, vector A (S n) -> Type),
     (forall (h : A) (n : nat) (t : vector A n), P n (@cons A h n t)) ->

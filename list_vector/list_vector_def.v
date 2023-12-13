@@ -14,7 +14,6 @@ Arguments elts_spec {A n}.
 
 Check mk_vector.
 Check elts_spec.
-
 (*
 nil
 *)

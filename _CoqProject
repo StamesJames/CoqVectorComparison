@@ -1,10 +1,12 @@
 -R . CoqVectorComparison
 utils/lia_utils.v
 utils/fin_utils.v
+utils/list_utils.v
 inductive_vector/InductiveVectorDef.v
 inductive_vector/InductiveVectorSpec.v
 inductive_vector/InductiveVector.v
 recursive_vector/RecursiveVectorDef.v
 recursive_vector/RecursiveVectorSpec.v
 recursive_vector/RecursiveVector.v
-
+functional_vector/FunctionalVectorDef.v
+list_vector/ListVectorDef.v

@@ -12,20 +12,20 @@ Local Notation "[ ]" := (nil _) (format "[ ]").
 Local Notation "h :: t" := (cons _ h _ t) (at level 60, right associativity).
 
 Definition rectS {A} (P:forall {n}, t A (S n) -> Type)
- (bas: forall a: A, P (a :: []))
- (rect: forall a {n} (v: t A (S n)), P v -> P (a :: v)) :=
- fix rectS_fix {n} (v: t A (S n)) : P v :=
- match v with
- |@cons _ a 0 v =>
-   match v with
-     |nil _ => bas a
-     |_ => fun devil => False_ind (@IDProp) devil
-   end
- |@cons _ a (S nn') v => rect a v (rectS_fix v)
- |_ => fun devil => False_ind (@IDProp) devil
- end.
+(bas: forall a: A, P (a :: []))
+(rect: forall a {n} (v: t A (S n)), P v -> P (a :: v)) :=
+fix rectS_fix {n} (v: t A (S n)) : P v :=
+match v with
+|@cons _ a 0 v =>
+  match v with
+    |nil _ => bas a
+    |_ => fun devil => False_ind (@IDProp) devil
+  end
+|@cons _ a (S nn') v => rect a v (rectS_fix v)
+|_ => fun devil => False_ind (@IDProp) devil
+end.
 
- Definition case0 {A} (P:t A 0 -> Type) (H:P (nil A)) v:P v :=
+Definition case0 {A} (P:t A 0 -> Type) (H:P (nil A)) v:P v :=
 match v with
   |[] => H
   |_ => fun devil => False_ind (@IDProp) devil
@@ -39,21 +39,21 @@ match v with
 end.
 
 Definition caseS' {A} {n : nat} (v : t A (S n)) : forall (P : t A (S n) -> Type)
-  (H : forall h t, P (h :: t)), P v :=
-  match v with
-  | h :: t => fun P H => H h t
-  | _ => fun devil => False_rect (@IDProp) devil
-  end.
+(H : forall h t, P (h :: t)), P v :=
+match v with
+| h :: t => fun P H => H h t
+| _ => fun devil => False_rect (@IDProp) devil
+end.
 
-  Definition rect2 {A B} (P:forall {n}, t A n -> t B n -> Type)
-  (bas : P [] []) (rect : forall {n v1 v2}, P v1 v2 ->
-    forall a b, P (a :: v1) (b :: v2)) :=
-  fix rect2_fix {n} (v1 : t A n) : forall v2 : t B n, P v1 v2 :=
-  match v1 with
-  | [] => fun v2 => case0 _ bas v2
-  | @cons _ h1 n' t1 => fun v2 =>
-    caseS' v2 (fun v2' => P (h1::t1) v2') (fun h2 t2 => rect (rect2_fix t1 t2) h1 h2)
-  end.
+Definition rect2 {A B} (P:forall {n}, t A n -> t B n -> Type)
+(bas : P [] []) (rect : forall {n v1 v2}, P v1 v2 ->
+  forall a b, P (a :: v1) (b :: v2)) :=
+fix rect2_fix {n} (v1 : t A n) : forall v2 : t B n, P v1 v2 :=
+match v1 with
+| [] => fun v2 => case0 _ bas v2
+| @cons _ h1 n' t1 => fun v2 =>
+  caseS' v2 (fun v2' => P (h1::t1) v2') (fun h2 t2 => rect (rect2_fix t1 t2) h1 h2)
+end.
 
 Definition hd {A} := @caseS _ (fun n v => A) (fun h n t => h).
 Global Arguments hd {A} {n} v.

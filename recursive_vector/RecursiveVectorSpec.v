@@ -166,7 +166,165 @@ induction n as [|n IHn]; intros v.
   rewrite (rev_cons A b n v).
   reflexivity.
 Qed.
+ 
+Lemma rev_rev A: forall n (v : t A n), rev (rev v) = v.
+Proof.
+intros n.
+induction n as [|n IHn]; intros v. 
+- destruct v.
+  now rewrite !rev_nil.
+- destruct v.
+  change (a,t) with (a :: t).
+  now rewrite rev_cons, rev_shiftin, IHn.
+Qed.
 
 
+Lemma map_shiftin A B: forall (f : A -> B) a n (v : t A n),
+  map f (shiftin a v) = shiftin (f a) (map f v).
+Proof.
+intros f a n.
+induction n as [|n IHn]; intros v.
+- destruct v. reflexivity.
+- destruct v. cbn. apply f_equal, IHn.
+Qed.
+
+Lemma map_rev A B: forall (f : A -> B) n (v : t A n),
+  map f (rev v) = rev (map f v).
+Proof.
+intros f n. 
+induction n as [|n IHn]; intros v.
+- now rewrite !rev_nil.
+- destruct v.
+  fold (cons a t).
+  rewrite rev_cons.
+  rewrite map_shiftin.
+  rewrite IHn.
+  cbn.
+  fold (f a :: map f t).
+  rewrite rev_cons.
+  reflexivity.
+Qed.
+
+Lemma to_list_of_list_opp {A} (l: list A): to_list (of_list l) = l.
+Proof.
+induction l.
+- reflexivity.
+- unfold to_list; simpl. now f_equal.
+Qed.
+
+Lemma length_to_list A n (v : t A n): length (to_list v) = n.
+Proof. induction n; destruct v; cbn; auto. Qed.
+
+Lemma of_list_to_list_opp A n (v: t A n):
+  rew length_to_list _ _ _ in of_list (to_list v) = v.
+Proof.
+induction n as [|n IHn]; destruct v as [h v]; cbn.
+- now apply case0 with (P := fun v => v = @nil A).
+- fold (h :: v).
+  fold (h :: of_list (to_list v)).
+  replace (length_to_list _ _ (@cons _ h _ v)) with (f_equal S (length_to_list _ _ v))
+    by apply (UIP_dec Nat.eq_dec).
+  cbn.
+  rewrite map_subst_map.
+  f_equal.
+  now etransitivity; [ | apply IHn].
+Qed.
+
+Lemma to_list_nil A : to_list (@nil A) = List.nil.
+Proof. reflexivity. Qed.
+
+Lemma to_list_cons A h n (v : t A n):
+  to_list (@cons A h n v) = List.cons h (to_list v).
+Proof. reflexivity. Qed.
+
+
+Lemma to_list_nil_iff A v:
+  to_list v = List.nil <-> v = @nil A.
+Proof.
+split; intro H.
+- now apply case0 with (P := fun v => v = []).
+- subst. apply to_list_nil.
+Qed.
+
+Lemma to_list_inj A n (v w : t A n):
+  to_list v = to_list w -> v = w.
+Proof.
+revert v w.
+induction n as [|n IHn]; intros v w; destruct w.
+- apply to_list_nil_iff.
+- intros H. rewrite (eta v) in H.
+  injection H as [=H0 H1%IHn]. subst. apply eta.
+Qed.
+
+Lemma to_list_hd A n (v : t A (S n)) d:
+  hd v = List.hd d (to_list v).
+Proof. now rewrite (eta v). Qed.
+
+Lemma to_list_last A n (v : t A (S n)) d:
+  last v = List.last (to_list v) d.
+Proof.
+apply rectS with (v:=v); [reflexivity|].
+intros a k u IH.
+destruct u as [h t].
+fold (h::t) in *.
+rewrite to_list_cons.
+simpl List.last.
+change (match to_list t with
+| Datatypes.nil => h
+| (_ :: _)%list => List.last (to_list t) d
+end) with (List.last (to_list (h::t)) d).
+now rewrite <- IH, (eta (h::t)).
+Qed.
+
+Lemma to_list_const A (a : A) n:
+  to_list (const a n) = List.repeat a n.
+Proof.
+induction n as [ | n IHn ]; [reflexivity|].
+now cbn; rewrite <- IHn.
+Qed.
+
+Lemma to_list_tl A n (v : t A (S n)):
+  to_list (tl v) = List.tl (to_list v).
+Proof. now rewrite (eta v). Qed.
+
+Lemma to_list_append A n m (v1 : t A n) (v2 : t A m):
+  to_list (append v1 v2) = List.app (to_list v1) (to_list v2).
+Proof.
+induction n; destruct v1.
+- simpl; trivial.
+- simpl.
+  f_equal.
+  apply (IHn t).
+Qed.
+
+Lemma to_list_rev_append_tail A n m (v1 : t A n) (v2 : t A m):
+  to_list (rev_append_tail v1 v2) = List.rev_append (to_list v1) (to_list v2).
+Proof. 
+now revert m v2 v1; induction n; destruct v1; simpl.
+Qed.
+
+Lemma to_list_rev_append A n m (v1 : t A n) (v2 : t A m):
+  to_list (rev_append v1 v2) = List.rev_append (to_list v1) (to_list v2).
+Proof. unfold rev_append; rewrite <- (Nat.tail_add_spec n m); apply to_list_rev_append_tail. Qed.
+
+Lemma to_list_rev A n (v : t A n):
+  to_list (rev v) = List.rev (to_list v).
+Proof.
+unfold rev; rewrite (plus_n_O n); unfold eq_rect_r; simpl.
+now rewrite to_list_rev_append, List.rev_alt.
+Qed.
+
+Lemma to_list_map A B (f : A -> B) n (v : t A n) :
+  to_list (map f v) = List.map f (to_list v).
+Proof.
+induction n; destruct v; cbn; [reflexivity|].
+now cbn; f_equal.
+Qed.
+
+Lemma to_list_fold_right A B f (b : B) n (v : t A n):
+  fold_right f v b = List.fold_right f b (to_list v).
+Proof.
+now induction n; destruct v; cbn; f_equal.
+Qed.
 
 

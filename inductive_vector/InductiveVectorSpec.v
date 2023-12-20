@@ -102,6 +102,8 @@ Lemma append_comm_cons {A} : forall {n m : nat} (v : t A n) (w : t A m) (a : A),
   a :: (v ++ w) = (a :: v) ++ w.
 Proof. reflexivity. Qed.
 
+Locate "rew".
+
 Lemma rev_cons A: forall a n (v : t A n), rev (a :: v) = shiftin a (rev v).
 Proof.
 intros a n v. unfold rev, rev_append, eq_rect_r.

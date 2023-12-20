@@ -3,7 +3,7 @@ Require Import lia_utils.
 Require Import Arith_base.
 Import EqNotations.
 Local Open Scope nat_scope.
-Require Import Fin. 
+Require Import Fin.
 
 Fixpoint t (A : Type) (n : nat) : Type :=
   match n with
@@ -264,11 +264,11 @@ end v.
 (*
 fold_right
 *)
-Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall n:nat, t A n -> B -> B :=
-fix fold_right_fix n v b := 
+Definition fold_right {A:Type} {B:Type} (f:A->B->B) : forall {n:nat}, t A n -> B -> B :=
+fix fold_right_fix {n} v b := 
 match n return t A n -> B with
 | 0 => fun _ => b 
-| S n' => fun (v:t A (S n')) => match v with (x,xs) => f x (fold_right_fix n' xs b) end
+| S n' => fun (v:t A (S n')) => match v with (x,xs) => f x (@fold_right_fix n' xs b) end
 end v.
 
 

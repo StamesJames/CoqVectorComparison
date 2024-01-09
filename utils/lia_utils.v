@@ -1,5 +1,10 @@
 Require Import Lia.
 
+Lemma nat_uip {x y : nat} (p q : x = y) : p = q.
+Proof.
+apply Eqdep_dec.UIP_dec.
+exact PeanoNat.Nat.eq_dec.
+Qed.
 Lemma not_lt_0: forall n: nat, n < 0 -> False.
 Proof.
 lia.

@@ -77,16 +77,6 @@ fun P:t A (S n) -> Type =>
   fun (H:(forall (h : A) (t : t A n), P (h :: t))) => 
     rew <- vec_hd_tl_eq n A v in H (v F1) (tl v).
 
-Definition rect2 {A B} (P:forall {n}, t A n -> t B n -> Type)
-(bas : P [] []) (rect : forall {n v1 v2}, P v1 v2 ->
-  forall a b, P (a :: v1) (b :: v2)) :=
-fix rect2_fix {n} (v1 : t A n) : forall v2 : t B n, P v1 v2 :=
-match v1 with
-| [] => fun v2 => case0 _ bas v2
-| @cons _ h1 n' t1 => fun v2 =>
-  caseS' v2 (fun v2' => P (h1::t1) v2') (fun h2 t2 => rect (rect2_fix t1 t2) h1 h2)
-end.
-
 Lemma vector_ind :
   forall (A : Type) (P : forall n : nat, t A n -> Prop),
     P 0 (nil _) -> 

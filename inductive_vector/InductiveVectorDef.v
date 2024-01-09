@@ -1,4 +1,3 @@
-
 Require Import Arith_base.
 Require Vectors.Fin.
 Import EqNotations.

@@ -2,6 +2,17 @@ Require Fin List.
 Require Import ListVectorDef PeanoNat Eqdep_dec.
 Import ListVectorNotations EqNotations.
 
+Lemma eq_iff_elts_eq A n (v1 v2: t A n):
+  v1 = v2 <-> elts v1 = elts v2.
+split.
+- intros.
+  now rewrite H.
+- intros.
+  destruct v1 as [el_v1 sp_v1].
+  destruct v2 as [el_v2 sp_v2].
+  cbn in *.
+  
+
 Lemma eq_nth_iff A n (v1 v2: t A n):
   (forall p1 p2, p1 = p2 -> v1 [@ p1 ] = v2 [@ p2 ]) <-> v1 = v2.
 Proof.

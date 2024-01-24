@@ -21,58 +21,61 @@ Definition cons (A : Type) (h : A) (n : nat) (v : t A n) : t A (S n) :=
 Local Notation "[ ]" := (nil _) (format "[ ]").
 Local Notation "h :: t" := (cons _ h _ t) (at level 60, right associativity).
 
-Require Import Lia.
-
 Lemma vec_spec_eq: forall {A:Type} {n:nat}, forall (v1 v2: t A n), elts v1 = elts v2 <-> v1 = v2.
 Proof.
-intros.
+intros A n v1 v2.
 split.
 - intros H.
-  destruct v1, v2.
+  destruct v1 as [el_v1 sp_v1].
+  destruct v2 as [el_v2 sp_v2].
   cbn in *.
   destruct H.
-  enough (elts_spec0 = elts_spec1).
-  + rewrite H.
-    reflexivity.
-  + Check Eqdep_dec.UIP_dec.
-    apply Eqdep_dec.UIP_dec.
-    apply PeanoNat.Nat.eq_dec.
+  rewrite (lia_utils.nat_uip sp_v1 sp_v2).
+  reflexivity.
 - intros H.
-  destruct v1, v2.
+  destruct v1 as [el_v1 sp_v1].
+  destruct v2 as [el_v2 sp_v2].
   apply (f_equal elts) in H.
   cbn in *.
   apply H.
 Qed.
 
+Definition hd {A:Type} {n:nat} (v:t A (S n)) : A :=
+  match elts_spec v with
+  | H => 
+    match elts v with 
+    | l => 
+      match l return (length (l) = S n -> A) with
+      | Datatypes.nil => fun H: length Datatypes.nil = S n => match S_not_0 n H  with end 
+      | (h :: t)%list => fun _ => h
+      end H
+    end
+  end. 
 
-Definition rectS {A} (P:forall {n}, t A (S n) -> Type)
-(bas: forall a: A, P (a :: []))
-(rect: forall a {n} (v: t A (S n)), P v -> P (a :: v)) 
-: forall (n:nat) (v:t A (S n)), P v.
+Lemma tl_aux {A:Type} {n:nat} (l:list A) (H:length l = n) : length (List.tl l) = pred n.
 Proof.
-refine (fix rectS_fix (n:nat) (v:t A (S n)) : @P n v := _).
-destruct v.
-destruct elts0.
-- refine (match lia_utils.S_not_0 n elts_spec0 with end).
-- destruct elts0.
-  + apply (f_equal pred) in elts_spec0 as H.
-    cbn in H.
-    destruct H.
-    rewrite (lia_utils.nat_uip elts_spec0 eq_refl).
-    refine (bas a).
-  + destruct n.
-    * apply (f_equal pred) in elts_spec0 as H.
-      refine (match lia_utils.S_not_0 _ (eq_sym H) with end).
-    * apply (f_equal pred) in elts_spec0 as H.
-      change (Init.Nat.pred (length (a :: a0 :: elts0)) = Init.Nat.pred (S (S n))) with (length (a0::elts0) = S n) in H.
-      specialize (rect a n {|elts := a0 :: elts0; elts_spec := H|}).
-      specialize (rectS_fix n {| elts := a0 :: elts0; elts_spec := H |}).
-      specialize (rect rectS_fix).
-      unfold cons in rect.
-      cbn in rect.
-      rewrite (lia_utils.nat_uip elts_spec0 (f_equal S H)).
-      refine (rect).
-Defined.
+destruct l, n; cbn; cbn in H; lia.
+Qed.
+
+Definition tl {A:Type} {n:nat} (v:t A (S n)) : t A n :=
+{| elts := List.tl (elts v); elts_spec := tl_aux (elts v) (elts_spec v)|}.
+
+Lemma vec_hd_tl_eq: forall (n:nat) (A:Type) (v:t A (S n)), v = (hd v :: tl v).
+Proof.
+intros n A v.
+destruct v as [l l_sp].
+destruct n, l.
+- cbn in l_sp.
+  destruct (lia_utils.S_not_0 _ l_sp).
+- apply vec_spec_eq.
+  reflexivity.
+- cbn in *.
+  destruct (lia_utils.S_not_0 _ l_sp).
+- apply vec_spec_eq.
+  reflexivity.
+Qed.
+
+Require Import Lia.
 
 Definition case0 {A} (P:t A 0 -> Type) (H:P (nil A)) v:P v:=
 match v with | {| elts := l; elts_spec := l_sp |} => 
@@ -82,6 +85,18 @@ match v with | {| elts := l; elts_spec := l_sp |} =>
   | (a :: l)%list => fun l_sp => match S_not_0 _ (eq_sym l_sp) with end
   end l_sp
 end.
+
+Lemma nil_spec: forall {A:Type} (v:t A 0), v = nil A.
+Proof.
+intros A v.
+destruct v as [l l_sp].
+destruct l.
+- cbn in *.
+  rewrite (lia_utils.nat_uip l_sp eq_refl).
+  reflexivity.
+- cbn in *.
+  destruct (lia_utils.S_not_0 _ (eq_sym l_sp)).
+Qed.
 
 Definition caseS {A} (P : forall {n}, t A (S n) -> Type)
   (H : forall h {n} t, @P n (h :: t)) {n} (v: t A (S n)) : P v :=
@@ -93,23 +108,62 @@ match v with {| elts := l; elts_spec := l_sp |} =>
           H a {| elts := l; elts_spec := f_equal pred l_sp |}
     end l_sp
 end.
-  
+
+
 Definition caseS' {A} {n : nat} (v : t A (S n)) : forall (P : t A (S n) -> Type)
 (H : forall h t, P (h :: t)), P v :=
-match v with
-| h :: t => fun P H => H h t
-| _ => fun devil => False_rect (@IDProp) devil
-end.
+match v with {| elts := l; elts_spec := l_sp |} => fun P H =>
+    match l return (forall l_sp : length l = S n, P {| elts := l; elts_spec := l_sp |}) with
+    | Datatypes.nil => fun l_sp => match S_not_0 n l_sp with end
+    | (a :: l)%list => fun l_sp => 
+          rew [fun e => P {| elts := a :: l; elts_spec := e |}] nat_uip (f_equal S (f_equal pred l_sp)) l_sp in 
+          H a {| elts := l; elts_spec := f_equal pred l_sp |}
+    end l_sp
+end. 
 
-Definition rect2 {A B} (P:forall {n}, t A n -> t B n -> Type)
-(bas : P [] []) (rect : forall {n v1 v2}, P v1 v2 ->
-  forall a b, P (a :: v1) (b :: v2)) :=
-fix rect2_fix {n} (v1 : t A n) : forall v2 : t B n, P v1 v2 :=
-match v1 with
-| [] => fun v2 => case0 _ bas v2
-| @cons _ h1 n' t1 => fun v2 =>
-  caseS' v2 (fun v2' => P (h1::t1) v2') (fun h2 t2 => rect (rect2_fix t1 t2) h1 h2)
-end.
+Definition caseS'' {A} (P : forall {n}, t A (S n) -> Type)
+  {n} (H : forall h t, @P n (h :: t)) (v: t A (S n)) : P v :=
+  match v with {| elts := l; elts_spec := l_sp |} =>
+      match l return (forall l_sp : length l = S n, P {| elts := l; elts_spec := l_sp |}) with
+      | Datatypes.nil => fun l_sp => match S_not_0 n l_sp with end
+      | (a :: l)%list => fun l_sp => rew [fun e => P {| elts := a :: l; elts_spec := e |}] nat_uip (f_equal S (f_equal pred l_sp)) l_sp in
+            H a {| elts := l; elts_spec := f_equal pred l_sp |}
+      end l_sp
+  end.
+
+Definition rectS {A} (P:forall {n}, t A (S n) -> Type)
+  (bas: forall a: A, P (a :: []))
+  (rect: forall a {n} (v: t A (S n)), P v -> P (a :: v))
+  : forall (n:nat) (v:t A (S n)), P v.
+Proof.
+  refine (fix rectS_fix (n:nat) (v:t A (S n)) : @P n v := _).
+  refine (match n return forall (v : t A (S n)), P n v with
+  | 0 => _
+  | S m => _
+  end v).
+  - refine (caseS'' _ (fun h w => _)).
+    refine (case0 (fun w => P 0 (h :: w)) (bas h) _).
+  - refine (caseS'' _ (fun h w => _)).
+    refine (rect h m w (rectS_fix m w)).
+Defined.
+
+Definition rect2 {A B} 
+  (P:forall {n}, t A n -> t B n -> Type)
+  (bas : P [] []) 
+  (rect : forall {n:nat} {v1:t A n} {v2:t B n}, P v1 v2 -> forall a b, P (a :: v1) (b :: v2)): forall {n} (v1 : t A n) (v2: t B n), P v1 v2.
+Proof.
+refine (fix rect2_fix {n} (v1 : t A n) : forall v2 : t B n, P n v1 v2 := _).
+refine (fun v2 => _).
+destruct n.
+- rewrite (nil_spec v1). 
+  rewrite (nil_spec v2).
+  apply bas.
+- rewrite (vec_hd_tl_eq _ _ v1).
+  rewrite (vec_hd_tl_eq _ _ v2).
+  specialize (rect2_fix n (tl v1) (tl v2)).
+  apply (rect n (tl v1) (tl v2) rect2_fix (hd v1) (hd v2)).
+Qed.
+
 
 Lemma vector_ind : forall (A : Type) (P : forall n : nat, t A n -> Prop),
   P 0 (nil _) -> (forall (h : A) (n : nat) (v : t A n), P n v -> P (S n) (cons _ h n v)) ->
@@ -133,27 +187,6 @@ Proof.
         decide equality.
 Qed.
 
-
-Definition hd {A:Type} {n:nat} (v:t A (S n)) : A :=
-  match elts_spec v with
-  | H => 
-    match elts v with 
-    | l => 
-      match l return (length (l) = S n -> A) with
-      | Datatypes.nil => fun H: length Datatypes.nil = S n => match S_not_0 n H  with end 
-      | (h :: t)%list => fun _ => h
-      end H
-    end
-  end. 
-
-Lemma tl_aux {A:Type} {n:nat} (l:list A) (H:length l = n) : length (List.tl l) = pred n.
-Proof.
-destruct l, n; cbn; cbn in H; lia.
-Qed.
-
-Definition tl {A:Type} {n:nat} (v:t A (S n)) : t A n :=
-{| elts := List.tl (elts v); elts_spec := tl_aux (elts v) (elts_spec v)|}.
-
 Definition last {A:Type} {n:nat} (v:t A (S n)) : A :=
     match elts_spec v with
     | H => 
@@ -172,7 +205,47 @@ match n with
 | S n' => cons _ a n' (const a n')
 end.
 
-Definition nth {A:Type} {n:nat} (v:t A n) (f:Fin.t n) : A :=
+Fixpoint nth_refine {A:Type} {n:nat} (v:t A n) (f:Fin.t n) : A.
+Proof.
+refine (match f in Fin.t n return t A n -> A with | @Fin.F1 n => _ | @Fin.FS n f' => _ end v).
+- refine (fun v => _). 
+  refine (match v with {| elts:=l; elts_spec:=l_sp|} => _ end).
+  refine (match l return length l = S n -> A with | Datatypes.nil => _ | (a::l')%list => _ end l_sp).
+  + refine (fun l_sp => _).
+    refine (match lia_utils.S_not_0 _ l_sp with end).
+  + refine (fun l_sp => _).
+    refine (a).
+- refine (fun v => _).
+  refine (match v with {| elts:=l; elts_spec:=l_sp|} => _ end).
+  refine (match l return length l = S n -> A with | Datatypes.nil => _ | (a::l')%list => _ end l_sp).
+  + refine (fun l_sp => _).
+    refine (match lia_utils.S_not_0 _ l_sp with end).
+  + refine (fun l_sp => _).
+    refine (nth_refine A n ({|elts:=l'; elts_spec:=f_equal pred l_sp |}) f').
+  Show Proof.
+Defined.
+
+
+Fixpoint nth {A:Type} {n:nat} (v:t A n) (f:Fin.t n) : A := 
+match f in (Fin.t n) return (t A n -> A) with
+  | @F1 n => fun v : t A (S n) => 
+    match v with {| elts := l; elts_spec := l_sp |} => 
+      match l return (length l = S n -> A) with
+      | Datatypes.nil => fun l_sp : length Datatypes.nil = S n => match S_not_0 n l_sp return A with end
+      | (a :: l')%list => fun _ : length (a :: l') = S n => a
+      end l_sp
+    end
+  | @FS n f' => fun v : t A (S n) => 
+    match v with {| elts := l; elts_spec := l_sp |} => 
+      match l return (length l = S n -> A) with
+      | Datatypes.nil => fun l_sp : length Datatypes.nil = S n => match S_not_0 n l_sp return A with end
+      | (a :: l')%list => fun l_sp : length (a :: l') = S n => nth {| elts := l'; elts_spec := f_equal Init.Nat.pred l_sp |} f'
+    end l_sp
+  end
+end v.
+
+
+Definition nth' {A:Type} {n:nat} (v:t A n) (f:Fin.t n) : A :=
 match n return (t A n) -> (Fin.t n) -> A with 
 | 0 => fun (v:t A 0) (f:Fin.t 0) => match f with end
 | S n' => fun (v:t A (S n')) (f:Fin.t (S n')) =>
@@ -182,14 +255,32 @@ match n return (t A n) -> (Fin.t n) -> A with
   end
 end v f.
 
-Lemma replace_aux {A:Type} {n:nat}: forall (l:list A) (p:length l = n) (i:nat) (a:A), length (list_utils.list_replace l i a) = n.
+Lemma replace_aux {A:Type} {n:nat} (a a':A) (l:list A): length (a::l) = n -> length (a'::l) = n.
+Proof.
+intros H. cbn in *. assumption.
+Qed.
+
+Fixpoint replace {A:Type} {n:nat} (v:t A n) (f:Fin.t n) (a:A) {struct f} : t A n.
+Proof.
+refine (match f in (Fin.t n) return t A n -> t A n with | @Fin.F1 n' => fun v => _ | @Fin.FS n' f' => fun v => _ end v).
+- refine (match v with {|elts:=l; elts_spec:=l_sp|} => _ end).
+  refine (match l return length l = S n' -> t A (S n') with | Datatypes.nil => fun l_sp => _ | (a'::l')%list => fun l_sp => _ end l_sp).
+  + refine (match lia_utils.S_not_0 _ l_sp with end).
+  + refine ({|elts:= a::l'; elts_spec:=replace_aux a' a l' l_sp|}).
+- refine (match v with {|elts:=l; elts_spec:=l_sp|} => _ end).
+  refine (match l return length l = S n' -> t A (S n') with | Datatypes.nil => fun l_sp => _ | (a'::l')%list => fun l_sp => _ end l_sp).
+  + refine (match lia_utils.S_not_0 _ l_sp with end).
+  + refine (a'::(replace A n' (tl v) f' a)).
+Defined.
+
+Lemma replace_aux' {A:Type} {n:nat}: forall (l:list A) (p:length l = n) (i:nat) (a:A), length (list_utils.list_replace l i a) = n.
 Proof.
 intros.
 rewrite <- (list_utils.list_replace_len_eq l i a).
 apply p.
 Qed.
 
-Definition replace {A:Type} {n:nat} (v:t A n) (f:Fin.t n) (a:A) : t A n := 
+Definition replace' {A:Type} {n:nat} (v:t A n) (f:Fin.t n) (a:A) : t A n := 
 match v with
 | {| elts := l; elts_spec := p|} => {| elts := (list_replace l (fin_to_nat f) a); elts_spec := (replace_aux l p (fin_to_nat f) a)|} 
 end.

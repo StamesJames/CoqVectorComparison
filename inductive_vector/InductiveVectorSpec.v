@@ -21,7 +21,7 @@ split.
   + reflexivity.
   + intros n ? ? H ? ? H0. f_equal.
     * apply (H0 Fin.F1 Fin.F1 eq_refl).
-    * apply H. intros p1 p2 H1;
+    * apply H. intros p1 p2 H1.
         apply (H0 (Fin.FS p1) (Fin.FS p2) (f_equal (@Fin.FS n) H1)).
 - intros; now f_equal.
 Qed.

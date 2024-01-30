@@ -59,7 +59,10 @@ induction p as [|? p IHp].
   rewrite (eta v).
   cbn.
   apply vec_spec_eq.
+  cbn. 
+  unfold cons.
   cbn.
+  rewrite (IHp ).
 
 intros n p; induction p as [|? p IHp]; intros v; rewrite (eta v); simpl; apply vec_spec_eq; [reflexivity|].
 now rewrite IHp.

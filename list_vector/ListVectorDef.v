@@ -282,7 +282,7 @@ Qed.
 
 Definition replace' {A:Type} {n:nat} (v:t A n) (f:Fin.t n) (a:A) : t A n := 
 match v with
-| {| elts := l; elts_spec := p|} => {| elts := (list_replace l (fin_to_nat f) a); elts_spec := (replace_aux l p (fin_to_nat f) a)|} 
+| {| elts := l; elts_spec := p|} => {| elts := (list_replace l (fin_to_nat f) a); elts_spec := (replace_aux' l p (fin_to_nat f) a)|} 
 end.
 
 Lemma take_aux {i n m:nat}: forall (p:i<=n) (H:m = n), i<=m.

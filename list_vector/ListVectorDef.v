@@ -7,6 +7,7 @@ Require Import Arith_base.
 Import EqNotations.
 Local Open Scope nat_scope.
 
+#[universes(template)]
 Record t (A : Type) (n : nat) := 
   mk_vector { elts : list A; elts_spec : length elts = n }.
 Arguments mk_vector {A n}.

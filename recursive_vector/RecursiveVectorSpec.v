@@ -2,6 +2,20 @@ Require Fin List.
 Require Import RecursiveVectorDef PeanoNat Eqdep_dec.
 Import RecursiveVectorNotations EqNotations.
 
+Lemma vector_ind : forall (A : Type) (P : forall n : nat, t A n -> Prop),
+    P 0 [] -> 
+    (forall (h : A) (n : nat) (v : t A n), P n v -> P (S n) (h, v)) -> 
+    forall (n : nat) (v : t A n), P n v.
+Proof.
+  intros A P H1 H2 n.
+  induction n; cbn.
+  - intros [].
+    apply H1.
+  - intros [h v].
+    apply H2.
+    apply IHn.
+Qed.
+
 Definition cons_inj {A} {a1 a2} {n} {v1 v2 : t A n}
  (eq : a1 :: v1 = a2 :: v2) : a1 = a2 /\ v1 = v2 :=
    match eq in _ = x return caseS _ (fun a2' _ v2' => fun v1' => a1 = a2' /\ v1' = v2') x v1
@@ -195,7 +209,7 @@ intros f n.
 induction n as [|n IHn]; intros v.
 - now rewrite !rev_nil.
 - destruct v.
-  fold (cons a t).
+  fold (a :: t).
   rewrite rev_cons.
   rewrite map_shiftin.
   rewrite IHn.
@@ -296,6 +310,8 @@ induction n; destruct v1.
   f_equal.
   apply (IHn t).
 Qed.
+
+
 
 Lemma to_list_rev_append_tail A n m (v1 : t A n) (v2 : t A m):
   to_list (rev_append_tail v1 v2) = List.rev_append (to_list v1) (to_list v2).

@@ -6,17 +6,19 @@ Import EqNotations.
 Local Open Scope nat_scope.
 Require Import FunctionalExtensionality.
 
+Set Universe Polymorphism.
+
 Definition t (A : Type) (n : nat) := Fin.t n -> A.
 
 Definition nil : forall A:Type, t A 0 :=
   fun A i => Fin.case0 (fun _ => A) i.
 
 Definition cons : forall A:Type, A -> forall n:nat, t A n -> t A (S n) :=
-  fun A h n i => fun i' : Fin.t (S n) =>
-  match i' in (Fin.t n') return (t A (Nat.pred n') -> A) with
-  | F1 => fun _ => h
-  | FS i'' => fun v' => v' i''
-  end i.
+  fun A h n v => fun i : Fin.t (S n) => 
+    match i in Fin.t (S n) return t A n -> A with
+    | F1 => fun _ => h 
+    | FS i' => fun v' => v' i' 
+    end v.
 
 Local Notation "[ ]" := (nil _) (format "[ ]").
 Local Notation "h :: t" := (cons _ h _ t) (at level 60, right associativity).
@@ -118,7 +120,7 @@ Definition take {A:Type} {n:nat} : forall p : nat, (p < n) -> (t A n) -> t A p :
     fun (f:Fin.t p) => v (Fin.of_nat_lt H).
 
 Definition append {A:Type} {n:nat} {p:nat} (v:t A n) (w:t A p) : t A (n + p) := 
-  fun (i: Fin.t (n+p)) => case_L_R' (fun x => A) i (fun i:Fin.t n => v i) (fun i:Fin.t p => w i).
+  fun (i: Fin.t (n+p)) => Fin.case_L_R' (fun x => A) i (fun i:Fin.t n => v i) (fun i:Fin.t p => w i).
 
 Definition rev {A:Type} {n:nat} (v:t A n) : t A n :=
 fun f:Fin.t n => v (fin_inv f).

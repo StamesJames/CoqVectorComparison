@@ -3,6 +3,28 @@ Require Import ListVectorDef PeanoNat Eqdep_dec.
 Import ListVectorNotations EqNotations.
 Require Import Lia.
 
+Lemma vector_ind : forall (A : Type) (P : forall n : nat, t A n -> Prop),
+  P 0 (nil _) -> (forall (h : A) (n : nat) (v : t A n), P n v -> P (S n) (cons _ h n v)) ->
+  forall (n : nat) (v : t A n), P n v.
+Proof.
+  intros A P H1 H2 n.
+  induction n; cbn.
+  - intros [[|h elts] Helts]; cbn.
+    + destruct Helts.
+      apply H1.
+    + cbn in Helts.
+      lia.
+  - intros [[|h elts] Helts]; cbn.
+    + cbn in Helts.
+      lia.
+    + specialize (H2 h n (mk_vector elts (f_equal pred Helts)) (IHn _)).
+      cbn in H2.
+      replace Helts with (f_equal S (f_equal Nat.pred Helts)).
+      * apply H2.
+      * apply UIP_dec.
+        decide equality.
+Qed.
+
 Definition cons_inj {A} {a1 a2} {n} {v1 v2 : t A n}
  (eq : a1 :: v1 = a2 :: v2) : a1 = a2 /\ v1 = v2 :=
 conj 

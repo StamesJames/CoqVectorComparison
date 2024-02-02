@@ -1,9 +1,9 @@
-Require Import fin_utils.
-Require Import lia_utils.
+Require fin_utils.
+Require lia_utils.
 Require Import Arith_base.
 Import EqNotations.
 Local Open Scope nat_scope.
-Require Import Fin.
+Require Fin.
 
 (*Set Universe Polymorphism.*)
 
@@ -167,9 +167,9 @@ match p return p <= n -> t A p with
 | 0 => fun _ => [] 
 | S p' => fun (H:(S p'<= n)) => 
   match n return (S p'<= n) -> t A n -> t A (S p') with 
-  | 0 => fun (H:(S p'<= 0)) _ => match (Sn_not_leq_0 p' H) with end
+  | 0 => fun (H:(S p'<= 0)) _ => match (lia_utils.Sn_not_leq_0 p' H) with end
   | S n' => fun (H:(S p'<= S n')) (v:t A (S n')) => 
-    (hd v, @take A n' p' (leq_S p' n' H) (tl v))
+    (hd v, @take A n' p' (lia_utils.leq_S p' n' H) (tl v))
   end H v
 end le.
 

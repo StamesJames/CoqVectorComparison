@@ -1,4 +1,9 @@
 (************************************************************************)
+(* This file was copied from https://github.com/coq/coq/blob/master/theories/Vectors/VectorDef.v *)
+(* Date: 22.02.2024 *)
+
+
+(************************************************************************)
 (*         *   The Coq Proof Assistant / The Coq Development Team       *)
 (*  v      *         Copyright INRIA, CNRS and contributors             *)
 (* <O___,, * (see version control and CREDITS file for authors & dates) *)
@@ -323,15 +328,15 @@ Definition to_list {A}{n} (v : t A n) : list A :=
 Eval cbv delta beta in fold_right (fun h H => Datatypes.cons h H) v Datatypes.nil.
 End VECTORLIST.
 
-Module InductiveVectorNotations.
-Declare Scope inductive_vector_scope.
-Delimit Scope inductive_vector_scope with inductive_vector.
-Notation "[ ]" := [] (format "[ ]") : inductive_vector_scope.
+Module VectorNotations.
+Declare Scope vector_scope.
+Delimit Scope vector_scope with vector.
+Notation "[ ]" := [] (format "[ ]") : vector_scope.
 Notation "h :: t" := (h :: t) (at level 60, right associativity)
-  : inductive_vector_scope.
-Notation "[ x ]" := (x :: []) : inductive_vector_scope.
-Notation "[ x ; y ; .. ; z ]" := (cons _ x _ (cons _ y _ .. (cons _ z _ (nil _)) ..)) : inductive_vector_scope.
-Notation "v [@ p ]" := (nth v p) (at level 1, format "v [@ p ]") : inductive_vector_scope.
-Infix "++" := append : inductive_vector_scope.
-Open Scope inductive_vector_scope.
-End InductiveVectorNotations.
+  : vector_scope.
+Notation "[ x ]" := (x :: []) : vector_scope.
+Notation "[ x ; y ; .. ; z ]" := (cons _ x _ (cons _ y _ .. (cons _ z _ (nil _)) ..)) : vector_scope.
+Notation "v [@ p ]" := (nth v p) (at level 1, format "v [@ p ]") : vector_scope.
+Infix "++" := append : vector_scope.
+Open Scope vector_scope.
+End VectorNotations.

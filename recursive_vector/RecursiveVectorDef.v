@@ -1,3 +1,5 @@
+Set Mangle Names.
+Set Default Goal Selector "!".
 Require fin_utils.
 Require lia_utils.
 Require Import Arith_base.
@@ -19,6 +21,11 @@ Definition cons (A:Type) (a:A) (n:nat) (v:t A n) : t A (S n) :=
 
 Local Notation "[ ]" := (nil _) (format "[ ]").
 Local Notation "h :: t" := (cons _ h _ t) (at level 60, right associativity).
+
+Definition mul_first_two {n} (v:t nat (S (S n))): nat :=
+  match v with
+  | (h, (h', t)) => h * h'
+  end.
 
 Section SCHEMES.
 
@@ -100,14 +107,10 @@ end.
 Definition const_std {A} (a:A) := nat_rect _ [] (fun n x => cons _ a n x).
 
 Fixpoint nth {A n} (v:t A n) (f:Fin.t n) : A := 
-match n return Fin.t n -> t A n -> A 
-with | 0 => fun f _ => match f with end 
-| S n' => fun f v => 
-  match f in Fin.t (S n') return t A (S n') -> A with 
-  |Fin.F1 => fun v => match v with (h,t) => h end 
-  | Fin.FS f' => fun v =>  match v with (h,t) => nth t f' end 
-  end v 
-end f v.
+match f in Fin.t n return t A n -> A with 
+| Fin.F1 => fun v => match v with (h,t) => h end 
+| Fin.FS f' => fun v =>  match v with (h,t) => nth t f' end 
+end v. 
 
 (*as in std*)
 Definition nth_order {A} {n} (v: t A n) {p} (H: p < n) :=
@@ -165,12 +168,11 @@ Global Arguments shiftrepeat {A} {n} v.
 Fixpoint take {A} {n} (p:nat) (le:p <= n) (v:t A n) : t A p := 
 match p return p <= n -> t A p with
 | 0 => fun _ => [] 
-| S p' => fun (H:(S p'<= n)) => 
-  match n return (S p'<= n) -> t A n -> t A (S p') with 
-  | 0 => fun (H:(S p'<= 0)) _ => match (lia_utils.Sn_not_leq_0 p' H) with end
-  | S n' => fun (H:(S p'<= S n')) (v:t A (S n')) => 
-    (hd v, @take A n' p' (lia_utils.leq_S p' n' H) (tl v))
-  end H v
+| S p' => 
+  match n return t A n -> (S p'<= n) -> t A (S p') with 
+  | 0 => fun v le => False_rect _ (Nat.nle_succ_0 p' le)
+  | S n' => fun v le => hd v::take p' (le_S_n p' _ le) (tl v)
+  end v
 end le.
 
 (*as in std*)
@@ -256,9 +258,6 @@ Definition fold_left {A B:Type} (f:B->A->B): forall (b:B) {n} (v:t A n), B :=
     | S n' => fun v => match v with (a,w) => (fold_left_fix (f b a) w) end
   end v.
 
-(*
-fold_right
-*)
 Definition fold_right {A B : Type} (f : A->B->B) :=
   fix fold_right_fix {n} (v : t A n) (b:B)
   {struct n} : B :=

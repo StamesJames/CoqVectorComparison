@@ -12,5 +12,7 @@ functional_vector/FunctionalVectorDef.v
 functional_vector/FunctionalVectorSpec.v
 functional_vector/FunctionalVector.v
 list_vector/ListVectorDef.v
+list_vector/ListVectorSpec.v
+list_vector/ListVector.v
 
 

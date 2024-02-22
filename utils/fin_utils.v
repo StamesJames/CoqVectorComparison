@@ -1,17 +1,53 @@
 Require Import Fin.
 Require Import lia_utils.
-Print Fin.t.
+
+Definition aux {n : nat} (v : t n) :=
+  match n with 
+  | 0 => fun (w : t 0) => True 
+  | S 0 => fun (w : t 1) => w = @Fin.F1 0
+  | S _ => fun _ => True 
+  end v.
+
+Lemma fin_1_spec (f:t 1): f = Fin.F1.
+Proof.
+change (aux f).
+destruct f. 
+- destruct n. 
+  + cbn.
+    reflexivity.
+  + cbn.
+    constructor.
+- destruct n. 
+  + apply Fin.case0.
+    apply f. 
+  + cbn.
+    constructor.
+Qed.
+
+
+Inductive either (A B : Type) : Type :=
+  | Left : A -> either A B
+  | Right : B -> either A B.
+Global Arguments Left {A} {B} a.
+Global Arguments Right {A} {B} b.
+
+Fixpoint fin_either_L_R {l r} (f:Fin.t (l+r)) : either (Fin.t l) (Fin.t r) :=
+  match l return t (l+r) -> either (t l) (t r) with 
+  | 0 => fun f => Right f
+  | S l' => fun f => 
+    Fin.caseS' f (fun f:t (S (l' + r)) => either (t (S l')) (t r)) 
+      (Left Fin.F1 )
+      (fun f' => match fin_either_L_R f' with 
+      | Left l_f => Left (Fin.FS l_f)
+      | Right r_f => Right r_f
+      end)
+  end f.
 
 Fixpoint fin_lift {n:nat} (f:Fin.t n) : Fin.t (S n) :=
 match f with
 | F1 => F1 
 | FS f' => FS (fin_lift f')
 end.
-
-(*
-Fin recursion von größten zum kleinsten Element implementieren
-Wie bei listen rev_ind
-*)
 
 
 Fixpoint fin_fold_right_fix {B:Type} {n:nat} (i:nat) (p:i<n) (acc:B) (f:Fin.t n -> B -> B) : B := 
@@ -25,10 +61,6 @@ match n return (Fin.t n -> B -> B) -> B with
 | 0 => fun _ => b
 | S n' => fun f:(Fin.t (S n') -> B -> B) => fin_fold_right_fix n' (n_lt_Sn n') b f
 end f.
-
-(*
-Ähnliche lösung zu rev vector der inductiven vec implementierung suchen
-*)
 
 Definition fin_inv {n:nat} (f:Fin.t n) : Fin.t n :=
 match n return Fin.t n -> Fin.t n with 

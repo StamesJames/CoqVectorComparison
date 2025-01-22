@@ -1,2 +1,2 @@
 # CoqVectorComparison
-This repository is for my student research project. It aims to copare diferent Vector implementations in coq
+This repository is for my student research project. It aims to compare different vector implementations in [Coq](https://github.com/coq/coq).
